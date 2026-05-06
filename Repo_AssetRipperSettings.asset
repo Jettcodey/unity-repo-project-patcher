@@ -45,6 +45,10 @@ MonoBehaviour:
     sourceName: LightingSettings
     outputPath: LightingSettings
     exclude: 0
+  - key: Localization
+    sourceName: Localization
+    outputPath: Localization
+    exclude: 0
   - key: Material
     sourceName: Material
     outputPath: Materials
@@ -133,6 +137,7 @@ MonoBehaviour:
   - Editor
   - Font
   - LightingSettings
+  - Localization
   - Material
   - Mesh
   - GameObject
@@ -162,7 +167,8 @@ MonoBehaviour:
   - Scripts\PhotonVoice
   - Scripts\PhotonVoice.API
   - Scripts\PhotonVoice.PUN
-  _filesToExcludeFromCopy: []
+  _filesToExcludeFromCopy:
+  - Localization\Locales\*
   _foldersToExcludeFromRead:
   - Scripts\Unity.Burst
   - Scripts\Unity.Burst.Unsafe
