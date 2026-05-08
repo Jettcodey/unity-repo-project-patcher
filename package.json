@@ -1,10 +1,10 @@
 {
   "name": "com.kesomannen.unity-repo-project-patcher",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "displayName": "REPO Project Patcher",
   "description": "A game wrapper that generates a Unity project from R.E.P.O's build that can be playable in-editor",
   "unity": "2022.3",
-  "unityRelease": "21f1",
+  "unityRelease": "62f3",
   "licensesUrl": "https://choosealicense.com/licenses/gpl-3.0/",
   "dependencies": {},
   "devDependencies": {},
