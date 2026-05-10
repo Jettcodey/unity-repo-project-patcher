@@ -33,7 +33,11 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
                     var custom = AssetDatabase.LoadAssetAtPath<Shader>(customPath);
                     var original = AssetDatabase.LoadAssetAtPath<Shader>(originalPath);
                     
-                    shaderReplacements.Add(original, custom);
+                    // Edited
+                    if (original == null)
+                        Debug.Log($"No original counterpart for shader: {custom.name}", custom);
+                    else
+                        shaderReplacements.Add(original, custom);
                 }
                 
                 Debug.Log($"Found {customGuids.Length} custom shaders");
