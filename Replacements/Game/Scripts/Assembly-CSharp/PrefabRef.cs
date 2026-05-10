@@ -58,10 +58,10 @@ public class PrefabRef {
 
 	public bool IsValid(){
 		#if UNITY_EDITOR
-		return prefab != null;
-		#else
-	    return !string.IsNullOrEmpty(resourcePath);
+		if(prefab != null) return true;
 		#endif
+
+	    return !string.IsNullOrEmpty(resourcePath);
 	}
 
 	public void SetPrefab(GameObject _prefab, string _resourcePath = null){
