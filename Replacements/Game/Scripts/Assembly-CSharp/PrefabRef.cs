@@ -75,13 +75,7 @@ public class PrefabRef {
 			#if UNITY_EDITOR
 			var path = UnityEditor.AssetDatabase.GetAssetPath(_prefab);
 			var cleanPath = path.Replace("//", "/");
-			if(cleanPath.Contains("/Resources/")){
-				int start = cleanPath.IndexOf("/Resources/", StringComparison.Ordinal) + 11;
-				int end = cleanPath.LastIndexOf(".prefab", StringComparison.Ordinal);
-				resourcePath = cleanPath.Substring(start, end - start);
-			}else{
-				resourcePath = cleanPath;
-			}
+			resourcePath = cleanPath;
 			#else
 			resourcePath = _resourcePath;
 			#endif

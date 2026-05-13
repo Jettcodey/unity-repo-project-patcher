@@ -17,13 +17,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 
             var resourcePathProp = iterator.FindPropertyRelative("resourcePath");
             var cleanPath = newPath.Replace("//", "/");
-            if(cleanPath.Contains("/Resources/")){
-                int start = cleanPath.IndexOf("/Resources/", StringComparison.Ordinal) + 11;
-                int end = cleanPath.LastIndexOf(".prefab", StringComparison.Ordinal);
-                resourcePathProp.stringValue = cleanPath.Substring(start, end - start);
-            }else{
-                resourcePathProp.stringValue = newName;
-            }
+            resourcePathProp.stringValue = cleanPath;
             changed = true;
         }
         return changed;
@@ -67,7 +61,6 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 
     static AssetMoveResult OnWillMoveAsset(string oldPath, string newPath) {
         if(!oldPath.EndsWith(".prefab")) return AssetMoveResult.DidNotMove;
-        if(!oldPath.Contains("/Resources/") && !newPath.Contains("/Resources/")) return AssetMoveResult.DidNotMove;
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(oldPath);
         if(prefab == null) return AssetMoveResult.DidNotMove;
 
@@ -105,7 +98,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
     }
 
     static AssetDeleteResult OnWillDeleteAsset(string newPath, RemoveAssetOptions options) {
-        if(!newPath.EndsWith(".prefab") || !newPath.Contains("/Resources/")) return AssetDeleteResult.DidNotDelete;
+        if(!newPath.EndsWith(".prefab")) return AssetDeleteResult.DidNotDelete;
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(newPath);
         if(prefab == null) return AssetDeleteResult.DidNotDelete;
 
@@ -147,17 +140,17 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 //     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
 //         List<UnityEngine.Object> dirtyAssets = new();
 //         List<GameObject> dirtyPrefabs = new();
-
+//
 //         Dictionary<string, string> allAssetContents = null;
-
+//
 //         foreach(var newPath in importedAssets){
-//             if(!newPath.EndsWith(".prefab") || movedAssets.Contains(newPath) || !newPath.Contains("/Resources/")) continue;
+//             if(!newPath.EndsWith(".prefab") || movedAssets.Contains(newPath)) continue;
 //             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(newPath);
 //             if(prefab == null) continue;
-
+//
 //             string newName = System.IO.Path.GetFileNameWithoutExtension(newPath);
 //             string prefabGuid = AssetDatabase.AssetPathToGUID(newPath);
-
+//
 //             if(allAssetContents == null){
 //                 allAssetContents = AssetDatabase.FindAssets("t:ScriptableObject").Concat(AssetDatabase.FindAssets("t:Prefab"))
 //                     .Distinct()
@@ -165,10 +158,10 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 //                     .ToDictionary(p => p, System.IO.File.ReadAllText);
 //             }
 //             var dependents = allAssetContents.Where(kvp => kvp.Value.Contains(prefabGuid)).Select(kvp => kvp.Key).ToArray();
-
+//
 //             PrefabRefAssetProcessor.ProcessPaths(dependents, prefab, newName, newPath, dirtyAssets, dirtyPrefabs);
 //         }
-
+//
 //         if(dirtyAssets.Count > 0){
 //             AssetDatabase.StartAssetEditing();
 //             try{
@@ -179,7 +172,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 //                 AssetDatabase.StopAssetEditing();
 //             }
 //         }
-
+//
 //         foreach(var go in dirtyPrefabs){
 //             PrefabUtility.SavePrefabAsset(go);
 //         }

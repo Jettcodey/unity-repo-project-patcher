@@ -21,13 +21,7 @@ public class PrefabRefDrawer : PropertyDrawer {
 
 					var path = AssetDatabase.GetAssetPath(prefab);
 					var cleanPath = path.Replace("//", "/");
-					if(cleanPath.Contains("/Resources/")){
-						int start = cleanPath.IndexOf("/Resources/", StringComparison.Ordinal) + 11;
-						int end = cleanPath.LastIndexOf(".prefab", StringComparison.Ordinal);
-						resourcePathProp.stringValue = cleanPath.Substring(start, end - start);
-					}else{
-						resourcePathProp.stringValue = prefab.name;
-					}
+					resourcePathProp.stringValue = cleanPath;
 				}else{
 					prefabNameProp.stringValue = null;
 					resourcePathProp.stringValue = null;
