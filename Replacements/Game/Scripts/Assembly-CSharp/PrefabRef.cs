@@ -3,9 +3,9 @@ using System.IO;
 using UnityEngine;
 
 [Serializable]
-public class PrefabRef {
+public class PrefabRef<T> where T : UnityEngine.Object {
 	#if UNITY_EDITOR
-	[SerializeField] private GameObject prefab;
+	[SerializeField] private T prefab;
 	#endif
 
 	[SerializeField] private string prefabName;
@@ -16,11 +16,13 @@ public class PrefabRef {
 	public string ResourcePath => bundle ? $"AssetBundles/{bundle.name}/{resourcePath}" : resourcePath;
 	public AssetBundle Bundle => bundle;
 
-	public GameObject Prefab {
+	public T Prefab {
 		get {
 			#if UNITY_EDITOR
 			if(prefab != null) return prefab;
 			#endif
+
+			if(string.IsNullOrEmpty(resourcePath)) return null;
 
 			string cachedPath;
 			if(bundle){
@@ -29,42 +31,43 @@ public class PrefabRef {
 				cachedPath = resourcePath;
 			}
 
-			if(RunManager.instance.singleplayerPool.TryGetValue(cachedPath, out var cachedPrefab)){
-				return cachedPrefab;
+			if(RunManager.instance.singleplayerPool.TryGetValue(cachedPath, out var cachedGameObject)){
+				return cachedGameObject as T;
 			}
-			if(RunManager.instance.multiplayerPool.ResourceCache.TryGetValue(cachedPath, out cachedPrefab)){
-				return cachedPrefab;
+			if(RunManager.instance.multiplayerPool.ResourceCache.TryGetValue(cachedPath, out var cachedPrefab)){
+				return cachedPrefab as T;
 			}
 
+			T cachedObject;
 			if(bundle){
-				cachedPrefab = bundle.LoadAsset<GameObject>(resourcePath);
+				cachedObject = bundle.LoadAsset<T>(resourcePath);
 			}else{
-				cachedPrefab = Resources.Load<GameObject>(resourcePath);
+				cachedObject = Resources.Load<T>(resourcePath);
 			}
 
-			if(cachedPrefab == null){
+			if(cachedObject == null){
 				if(bundle){
-					Debug.LogError("PrefabRef failed to load \"" + resourcePath + "\" from \"" + bundle.name + "\" asset bundle.");
+					Debug.LogError("PrefabRef failed to load \"" + resourcePath + "\" as " + typeof(T).Name + "from \"" + bundle.name + "\" asset bundle.");
 				}else{
-					Debug.LogError("PrefabRef failed to load \"" + resourcePath + "\". Make sure it's in a \"Resources\" folder.");
+					Debug.LogError("PrefabRef failed to load \"" + resourcePath + "\" as " + typeof(T).Name + ". Make sure it's in a \"Resources\" folder.");
 				}
 				return null;
 			}
 
-			RunManager.instance.singleplayerPool.Add(cachedPath, cachedPrefab);
-			return cachedPrefab;
+			RunManager.instance.singleplayerPool.Add(cachedPath, cachedObject);
+			return cachedObject;
 		}
 	}
 
 	public bool IsValid(){
 		#if UNITY_EDITOR
-		return prefab != null;
-		#else
-	    return !string.IsNullOrEmpty(resourcePath);
+		if(prefab != null) return true;
 		#endif
+
+	    return !string.IsNullOrEmpty(resourcePath);
 	}
 
-	public void SetPrefab(GameObject _prefab, string _resourcePath = null){
+	public void SetPrefab(T _prefab, string _resourcePath = null){
 		#if UNITY_EDITOR
 		prefab = _prefab;
 		#endif
@@ -75,13 +78,7 @@ public class PrefabRef {
 			#if UNITY_EDITOR
 			var path = UnityEditor.AssetDatabase.GetAssetPath(_prefab);
 			var cleanPath = path.Replace("//", "/");
-			if(cleanPath.Contains("/Resources/")){
-				int start = cleanPath.IndexOf("/Resources/", StringComparison.Ordinal) + 11;
-				int end = cleanPath.LastIndexOf(".prefab", StringComparison.Ordinal);
-				resourcePath = cleanPath.Substring(start, end - start);
-			}else{
-				resourcePath = cleanPath;
-			}
+			resourcePath = cleanPath;
 			#else
 			resourcePath = _resourcePath;
 			#endif
@@ -103,3 +100,6 @@ public class PrefabRef {
 		}
 	}
 }
+
+[Serializable]
+public class PrefabRef : PrefabRef<GameObject> { }
