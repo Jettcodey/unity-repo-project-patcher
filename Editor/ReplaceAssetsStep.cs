@@ -7,12 +7,22 @@ using UnityEngine;
 
 namespace Kesomannen.RepoProjectPatcher.Editor {
     public struct ReplaceAssetsStep : IPatcherStep {
-        [MenuItem("Tools/R.E.P.O. Project Patcher/Replace Additional Assets")]
+        [MenuItem("Tools/R.E.P.O. Project Patcher/Patch Assets/All")]
         static void MenuItem() {
-            ReplaceAssets();
+            ReplaceAssets(null);
         }
 
-        static void ReplaceAssets() {
+        [MenuItem("Tools/R.E.P.O. Project Patcher/Patch Assets/Scripts")]
+        static void MenuItemScripts() {
+            ReplaceAssets(".cs");
+        }
+
+        [MenuItem("Tools/R.E.P.O. Project Patcher/Patch Assets/Shaders")]
+        static void MenuItemShaders() {
+            ReplaceAssets(".shader");
+        }
+
+        static void ReplaceAssets(string extensionFilter) {
             var gameFolder = "Assets/REPO";
             var customFolder = Path.GetFullPath($"Packages/{Constants.PackageName}/Replacements");
 
@@ -32,7 +42,9 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
             try {
                 var assets = Directory.GetFiles(customFolder, "*", SearchOption.AllDirectories);
                 foreach (var srcPath in assets) {
-                    if (Path.GetExtension(srcPath) == ".meta") continue;
+                    var ext = Path.GetExtension(srcPath);
+                    if (ext == ".meta") continue;
+                    if (!string.IsNullOrEmpty(extensionFilter) && ext != extensionFilter) continue;
 
                     var relativePath = Path.GetRelativePath(customFolder, srcPath);
                     var destPath = Path.Combine(gameFolder, relativePath).Replace("EditorScripts", "Editor");
@@ -46,7 +58,7 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
                     count++;
                 }
 
-                Debug.Log($"Copied {count} replacement assets");
+                Debug.Log($"Copied {count} replacement assets" + (extensionFilter != null ? $" ({extensionFilter})" : ""));
             } finally {
                 AssetDatabase.StopAssetEditing();
                 if (count > 0) {
@@ -56,7 +68,7 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
         }
 
         public UniTask<StepResult> Run() {
-            ReplaceAssets();
+            ReplaceAssets(null);
             return UniTask.FromResult(StepResult.Success);
         }
 

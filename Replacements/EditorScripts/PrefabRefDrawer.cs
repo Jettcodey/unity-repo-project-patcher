@@ -2,6 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
+[CustomPropertyDrawer(typeof(PrefabRef<>))]
 [CustomPropertyDrawer(typeof(PrefabRef))]
 public class PrefabRefDrawer : PropertyDrawer {
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
@@ -16,10 +17,11 @@ public class PrefabRefDrawer : PropertyDrawer {
 			EditorGUI.PropertyField(position, prefabProp, label);
 
 			if (check.changed) {
-				if(prefabProp.objectReferenceValue is GameObject prefab){
-					prefabNameProp.stringValue = prefab.name;
+				var assignedObject = prefabProp.objectReferenceValue;
+				if(assignedObject != null){
+					prefabNameProp.stringValue = assignedObject.name;
 
-					var path = AssetDatabase.GetAssetPath(prefab);
+					var path = AssetDatabase.GetAssetPath(assignedObject);
 					var cleanPath = path.Replace("//", "/");
 					resourcePathProp.stringValue = cleanPath;
 				}else{

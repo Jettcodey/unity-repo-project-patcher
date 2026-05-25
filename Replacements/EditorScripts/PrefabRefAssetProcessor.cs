@@ -5,13 +5,18 @@ using UnityEditor;
 using UnityEngine;
 
 public class PrefabRefAssetProcessor : AssetModificationProcessor {
-    static bool UpdateAssetValues(GameObject prefab, string newName, string newPath, SerializedObject serialized) {
+    static bool UpdateAssetValues(string prefabGuid, string newName, string newPath, SerializedObject serialized) {
         bool changed = false;
         var iterator = serialized.GetIterator();
         while(iterator.NextVisible(true)){
-            if(iterator.propertyType != SerializedPropertyType.Generic || iterator.type != "PrefabRef") continue;
+            if(iterator.propertyType != SerializedPropertyType.Generic || !iterator.type.StartsWith("PrefabRef")) continue;
+
             var prefabProp = iterator.FindPropertyRelative("prefab");
-            if(prefabProp == null || prefabProp.objectReferenceValue != prefab) continue;
+            if(prefabProp == null) continue;
+            var referencedObject = prefabProp.objectReferenceValue;
+            if(referencedObject == null) continue;
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(referencedObject, out string refGuid, out long _);
+            if(refGuid != prefabGuid) continue;
 
             iterator.FindPropertyRelative("prefabName").stringValue = newName;
 
@@ -23,7 +28,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
         return changed;
     }
 
-    public static void ProcessPaths(string[] paths, GameObject prefab, string newName, string newPath, List<UnityEngine.Object> dirtyAssets, List<GameObject> dirtyPrefabs) {
+    public static void ProcessPaths(string[] paths, string prefab, string newName, string newPath, List<UnityEngine.Object> dirtyAssets, List<GameObject> dirtyPrefabs) {
         foreach(var path in paths){
             var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
             if(so != null){
@@ -60,8 +65,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
     }
 
     static AssetMoveResult OnWillMoveAsset(string oldPath, string newPath) {
-        if(!oldPath.EndsWith(".prefab")) return AssetMoveResult.DidNotMove;
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(oldPath);
+        var prefab = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(oldPath);
         if(prefab == null) return AssetMoveResult.DidNotMove;
 
         string newName = System.IO.Path.GetFileNameWithoutExtension(newPath);
@@ -77,7 +81,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
         List<UnityEngine.Object> dirtyAssets = new();
         List<GameObject> dirtyPrefabs = new();
 
-        ProcessPaths(dependents, prefab, newName, newPath, dirtyAssets, dirtyPrefabs);
+        ProcessPaths(dependents, prefabGuid, newName, newPath, dirtyAssets, dirtyPrefabs);
 
         if(dirtyAssets.Count > 0){
             AssetDatabase.StartAssetEditing();
@@ -98,7 +102,6 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
     }
 
     static AssetDeleteResult OnWillDeleteAsset(string newPath, RemoveAssetOptions options) {
-        if(!newPath.EndsWith(".prefab")) return AssetDeleteResult.DidNotDelete;
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(newPath);
         if(prefab == null) return AssetDeleteResult.DidNotDelete;
 
@@ -115,7 +118,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
         List<UnityEngine.Object> dirtyAssets = new();
         List<GameObject> dirtyPrefabs = new();
 
-        ProcessPaths(dependents, prefab, newName, newPath, dirtyAssets, dirtyPrefabs);
+        ProcessPaths(dependents, prefabGuid, newName, newPath, dirtyAssets, dirtyPrefabs);
 
         if(dirtyAssets.Count > 0){
             AssetDatabase.StartAssetEditing();
@@ -140,17 +143,17 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 //     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
 //         List<UnityEngine.Object> dirtyAssets = new();
 //         List<GameObject> dirtyPrefabs = new();
-//
+
 //         Dictionary<string, string> allAssetContents = null;
-//
+
 //         foreach(var newPath in importedAssets){
-//             if(!newPath.EndsWith(".prefab") || movedAssets.Contains(newPath)) continue;
+//             if(movedAssets.Contains(newPath) || !newPath.Contains("/Resources/")) continue;
 //             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(newPath);
 //             if(prefab == null) continue;
-//
+
 //             string newName = System.IO.Path.GetFileNameWithoutExtension(newPath);
 //             string prefabGuid = AssetDatabase.AssetPathToGUID(newPath);
-//
+
 //             if(allAssetContents == null){
 //                 allAssetContents = AssetDatabase.FindAssets("t:ScriptableObject").Concat(AssetDatabase.FindAssets("t:Prefab"))
 //                     .Distinct()
@@ -158,10 +161,10 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 //                     .ToDictionary(p => p, System.IO.File.ReadAllText);
 //             }
 //             var dependents = allAssetContents.Where(kvp => kvp.Value.Contains(prefabGuid)).Select(kvp => kvp.Key).ToArray();
-//
-//             PrefabRefAssetProcessor.ProcessPaths(dependents, prefab, newName, newPath, dirtyAssets, dirtyPrefabs);
+
+//             PrefabRefAssetProcessor.ProcessPaths(dependents, prefabGuid, newName, newPath, dirtyAssets, dirtyPrefabs);
 //         }
-//
+
 //         if(dirtyAssets.Count > 0){
 //             AssetDatabase.StartAssetEditing();
 //             try{
@@ -172,7 +175,7 @@ public class PrefabRefAssetProcessor : AssetModificationProcessor {
 //                 AssetDatabase.StopAssetEditing();
 //             }
 //         }
-//
+
 //         foreach(var go in dirtyPrefabs){
 //             PrefabUtility.SavePrefabAsset(go);
 //         }
