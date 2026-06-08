@@ -30,10 +30,6 @@ MonoBehaviour:
     outputPath: 
     exclude: 0
   - key: 
-    sourceName: SingularityGroup.HotReload.Runtime.dll
-    outputPath: 
-    exclude: 0
-  - key: 
     sourceName: SingularityGroup.HotReload.Runtime.Public.dll
     outputPath: 
     exclude: 0
@@ -67,14 +63,6 @@ MonoBehaviour:
     exclude: 0
   - key: 
     sourceName: ..\Plugins\x86_64\opus_egpv.dll
-    outputPath: 
-    exclude: 0
-  - key: 
-    sourceName: ..\Plugins\x86_64\overtone.dll
-    outputPath: 
-    exclude: 0
-  - key: 
-    sourceName: ..\Plugins\x86_64\overtoneruntime.dll
     outputPath: 
     exclude: 0
   - key: 
