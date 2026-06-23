@@ -8,7 +8,6 @@ using UnityEngine;
 namespace Kesomannen.RepoProjectPatcher.Editor {
     public readonly struct ReplaceSteamLinuxStep : IPatcherStep {
         public UniTask<StepResult> Run() {
-#if UNITY_EDITOR_LINUX
             var pluginsPath = Path.Combine(Application.dataPath, "REPO/Plugins");
             var zipPath = Path.GetFullPath($"Packages/{Constants.PackageName}/Replacements/Facepunch.Steamworks.zip");
             var destDir = Path.Combine(pluginsPath, "Facepunch.Steamworks");
@@ -49,7 +48,6 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
                 AssetDatabase.Refresh();
                 return UniTask.FromResult(StepResult.RestartEditor);
             }
-#endif
             return UniTask.FromResult(StepResult.Success);
         }
 

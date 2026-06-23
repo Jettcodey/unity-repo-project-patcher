@@ -10,7 +10,9 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
             stepPipeline.OpenSceneAtEnd("Main");
             
             stepPipeline.InsertLast(new FixES3Step());
+#if UNITY_EDITOR_LINUX
             stepPipeline.InsertLast(new ReplaceSteamLinuxStep());
+#endif
             stepPipeline.InsertLast(new GeneratePhotonAssembliesStep());
             // stepPipeline.InsertLast(new ReplaceShadersStep());
             stepPipeline.InsertLast(new ReplaceAssetsStep());
