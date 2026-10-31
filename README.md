@@ -31,13 +31,16 @@
 - [Usage](#usage)
 - [FAQ](#faq)
 
+> [!IMPORTANT]
+> This is a Linux Specific fork!
+
 ## About the Project
 
 This tool is a game wrapper on top of the [Unity Project Patcher](https://github.com/nomnomab/unity-project-patcher).
 
 This takes a build of R.E.P.O., extracts its assets/scripts/etc, and then generates a project for usage in the Unity editor.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > This tool does not distribute game files. It simply works off of your copy of the game!
 >
 > Also, this tool is for **personal** use only. Do not re-distrubute game files to others.
@@ -47,14 +50,14 @@ This takes a build of R.E.P.O., extracts its assets/scripts/etc, and then genera
 Make sure you have the following before using the tool in any way:
 
 - [Git](https://git-scm.com/download/win)
-- [.NET 9.0](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+- [.NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
   - To run Asset Ripper
 
 ## Installation
 
 ### Unity Project
 
-- Requires [Unity 2022.3.62](https://unity.com/releases/editor/whats-new/2022.3.62f3)
+- Requires [Unity 6000.3.17f1](https://unity.com/releases/editor/whats-new/6000.3.17f1)
 - Unity built-in render pipeline
 
 Create a new Unity project with the above requirements before getting started.
@@ -99,7 +102,7 @@ If you don't want to use plugins, then follow the steps at https://github.com/no
 
 The tool window can be opened via `Tools > Unity Project Patcher > Open Window`
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > This tool mostly supports patching an already patched project, although this can lead to broken assets.
 > So make sure you back up your project beforehand.
 
