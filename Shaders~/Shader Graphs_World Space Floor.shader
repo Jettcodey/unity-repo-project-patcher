@@ -1,6 +1,6 @@
 // Made with Amplify Shader Editor
 // Available at the Unity Asset Store - http://u3d.as/y3X 
-Shader "Patcher/Shader Graph/World Space Floor"
+Shader "Shader Graphs/World Space Floor"
 {
 	Properties
 	{

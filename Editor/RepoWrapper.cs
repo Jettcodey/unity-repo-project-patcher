@@ -14,8 +14,8 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
             stepPipeline.InsertLast(new ReplaceSteamLinuxStep());
 #endif
             stepPipeline.InsertLast(new GeneratePhotonAssembliesStep());
-            // stepPipeline.InsertLast(new ReplaceShadersStep());
             stepPipeline.InsertLast(new ReplaceAssetsStep());
+            stepPipeline.InsertLast(new FixLocalizationStep());
             stepPipeline.InsertLast(new UpdatePlayModeStep());
         }
     }

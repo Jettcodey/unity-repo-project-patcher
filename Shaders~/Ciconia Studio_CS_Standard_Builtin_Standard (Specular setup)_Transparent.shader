@@ -1,4 +1,4 @@
-Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cutout"
+Shader "Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Transparent"
 {
 	Properties
 	{
@@ -7,7 +7,6 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 		[Enum(Off,0,On,1)] _ZWrite("ZWrite", Float) = 1.0 //"On"
 		[Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("ZTest", Float) = 4 //"LessEqual"
 
-		_Cutoff( "Mask Clip Value", Float ) = 0.5
 		[Space(35)][Header(Main Properties )][Space(15)]_GlobalXYTilingXYZWOffsetXY("Global --> XY(TilingXY) - ZW(OffsetXY)", Vector) = (1,1,0,0)
 		_Color("Color", Color) = (1,1,1,0)
 		[Toggle]_InvertABaseColor("Invert Alpha", Float) = 0
@@ -33,7 +32,7 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 		[Space(15)][Toggle]_EnableTriplanarProjection("Enable Triplanar Projection", Float) = 1
 		[KeywordEnum(ObjectSpace,WorldSpace)] _TriplanarSpaceProjection("Space Projection", Float) = 0
 		_TriplanarFalloff("Falloff", Float) = 20
-		_TriplanarXYTilingXYZWOffsetXY1("Triplanar --> XY(TilingXY) - ZW(OffsetXY)  ", Vector) = (1,1,0,0)
+		_TriplanarXYTilingXYZWOffsetXY("Triplanar --> XY(TilingXY) - ZW(OffsetXY)  ", Vector) = (1,1,0,0)
 		[Toggle]_InvertMask("Invert Mask", Float) = 0
 		_DetailMask("Detail Mask", 2D) = "white" {}
 		_IntensityMask("Intensity", Range( 0 , 1)) = 1
@@ -44,8 +43,8 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 		_DetailAlbedoMap("Base Color", 2D) = "white" {}
 		_DetailSaturation("Saturation", Float) = 0
 		_DetailBrightness("Brightness", Range( 1 , 8)) = 1
-		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 		[Space(35)][Toggle]_BlendMainNormal("Blend Main Normal", Float) = 0
+		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 		_DetailNormalMap("Normal Map", 2D) = "bump" {}
 		_DetailNormalMapScale("Scale", Float) = 0.3
 		[Space(35)]_DetailSpecularColor("Specular Color", Color) = (1,1,1,0)
@@ -55,15 +54,18 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 		[Space(10)][KeywordEnum(SpecularAlpha,AlbedoAlpha)] _DetailSource("Source", Float) = 0
 		[Space(15)][Toggle]_UseAoFromMainProperties("Use Ao From Main Properties", Float) = 1
 		[Toggle]_UseEmissionFromMainProperties("Use Emission From Main Properties", Float) = 1
-		[Space(35)][Header(Cutout Properties)][Space(15)][Toggle]_InvertCutout("Invert ", Float) = 0
+		[Space(35)][Header(Transparent Properties)][Space(15)][Toggle]_InvertTransparent("Invert ", Float) = 0
 		[Toggle]_UseBaseColorAlpha("Use BaseColor Alpha", Float) = 0
-		_CutoutMap("Cutout Mask", 2D) = "white" {}
+		_TransparentMask("Transparent Mask", 2D) = "white" {}
+		_IntensityTransparentMap("Opacity", Range( 0 , 1)) = 0
+		[Space(15)]_ContrastTransparentMap("Contrast", Float) = 0
+		_SpreadTransparentMap("Spread", Float) = 0
 		[HideInInspector] __dirty( "", Int ) = 1
 	}
 
 	SubShader
 	{
-		Tags{ "RenderType" = "Opaque"  "Queue" = "AlphaTest+0" "IsEmissive" = "true"  }
+		Tags{ "RenderType" = "Transparent"  "Queue" = "Transparent+0" "IgnoreProjector" = "True" "IsEmissive" = "true"  }
 		Cull[_Cull]
 		ZWrite[_ZWrite]
 		ZTest [_ZTest]
@@ -112,7 +114,7 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 		uniform float _InvertMask;
 		uniform float _EnableTriplanarProjection;
 		uniform sampler2D _DetailMask;
-		uniform float4 _TriplanarXYTilingXYZWOffsetXY1;
+		uniform float4 _TriplanarXYTilingXYZWOffsetXY;
 		uniform float _SpreadDetailMap;
 		uniform float _IntensityMask;
 		uniform float _VisualizeMask;
@@ -147,19 +149,21 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 		uniform sampler2D _OcclusionMap;
 		uniform float4 _OcclusionMap_ST;
 		uniform float _AoIntensity;
-		uniform float _InvertCutout;
+		uniform float _ContrastTransparentMap;
+		uniform float _InvertTransparent;
 		uniform float _UseBaseColorAlpha;
-		uniform sampler2D _CutoutMap;
-		uniform float4 _CutoutMap_ST;
-		uniform float _Cutoff = 0.5;
+		uniform sampler2D _TransparentMask;
+		uniform float4 _TransparentMask_ST;
+		uniform float _SpreadTransparentMap;
+		uniform float _IntensityTransparentMap;
 
-		UNITY_INSTANCING_BUFFER_START(CiconiaStudioCS_StandardBuiltinStandardSpecularsetupCutout)
+		UNITY_INSTANCING_BUFFER_START(CiconiaStudioCS_StandardBuiltinStandardSpecularsetupTransparent)
 			UNITY_DEFINE_INSTANCED_PROP(float, _TriplanarFalloff)
-#define _TriplanarFalloff_arr CiconiaStudioCS_StandardBuiltinStandardSpecularsetupCutout
-		UNITY_INSTANCING_BUFFER_END(CiconiaStudioCS_StandardBuiltinStandardSpecularsetupCutout)
+#define _TriplanarFalloff_arr CiconiaStudioCS_StandardBuiltinStandardSpecularsetupTransparent
+		UNITY_INSTANCING_BUFFER_END(CiconiaStudioCS_StandardBuiltinStandardSpecularsetupTransparent)
 
 
-		inline float4 TriplanarSampling396( sampler2D topTexMap, float3 worldPos, float3 worldNormal, float falloff, float2 tiling, float3 normalScale, float3 index )
+		inline float4 TriplanarSampling393( sampler2D topTexMap, float3 worldPos, float3 worldNormal, float falloff, float2 tiling, float3 normalScale, float3 index )
 		{
 			float3 projNormal = ( pow( abs( worldNormal ), falloff ) );
 			projNormal /= ( projNormal.x + projNormal.y + projNormal.z ) + 0.00001;
@@ -181,133 +185,132 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 		void surf( Input i , inout SurfaceOutputStandardSpecular o )
 		{
 			float2 uv_BumpMap = i.uv_texcoord * _BumpMap_ST.xy + _BumpMap_ST.zw;
-			float2 break26_g635 = uv_BumpMap;
+			float2 break26_g619 = uv_BumpMap;
 			float GlobalTilingX11 = ( _GlobalXYTilingXYZWOffsetXY.x - 1.0 );
 			float GlobalTilingY8 = ( _GlobalXYTilingXYZWOffsetXY.y - 1.0 );
-			float2 appendResult14_g635 = (float2(( break26_g635.x * GlobalTilingX11 ) , ( break26_g635.y * GlobalTilingY8 )));
+			float2 appendResult14_g619 = (float2(( break26_g619.x * GlobalTilingX11 ) , ( break26_g619.y * GlobalTilingY8 )));
 			float GlobalOffsetX10 = _GlobalXYTilingXYZWOffsetXY.z;
 			float GlobalOffsetY9 = _GlobalXYTilingXYZWOffsetXY.w;
-			float2 appendResult13_g635 = (float2(( break26_g635.x + GlobalOffsetX10 ) , ( break26_g635.y + GlobalOffsetY9 )));
+			float2 appendResult13_g619 = (float2(( break26_g619.x + GlobalOffsetX10 ) , ( break26_g619.y + GlobalOffsetY9 )));
 			float2 uv_ParallaxMap = i.uv_texcoord * _ParallaxMap_ST.xy + _ParallaxMap_ST.zw;
-			float2 break26_g469 = uv_ParallaxMap;
-			float2 appendResult14_g469 = (float2(( break26_g469.x * GlobalTilingX11 ) , ( break26_g469.y * GlobalTilingY8 )));
-			float2 appendResult13_g469 = (float2(( break26_g469.x + GlobalOffsetX10 ) , ( break26_g469.y + GlobalOffsetY9 )));
-			float4 temp_cast_0 = (tex2D( _ParallaxMap, ( appendResult14_g469 + appendResult13_g469 ) ).g).xxxx;
-			float2 paralaxOffset36_g468 = ParallaxOffset( temp_cast_0.x , _Parallax , i.viewDir );
-			float2 switchResult47_g468 = (((i.ASEVFace>0)?(paralaxOffset36_g468):(0.0)));
-			float2 Parallaxe369 = switchResult47_g468;
-			float3 temp_output_245_0 = UnpackScaleNormal( tex2D( _BumpMap, ( ( appendResult14_g635 + appendResult13_g635 ) + Parallaxe369 ) ), _BumpScale );
+			float2 break26_g467 = uv_ParallaxMap;
+			float2 appendResult14_g467 = (float2(( break26_g467.x * GlobalTilingX11 ) , ( break26_g467.y * GlobalTilingY8 )));
+			float2 appendResult13_g467 = (float2(( break26_g467.x + GlobalOffsetX10 ) , ( break26_g467.y + GlobalOffsetY9 )));
+			float4 temp_cast_0 = (tex2D( _ParallaxMap, ( appendResult14_g467 + appendResult13_g467 ) ).g).xxxx;
+			float2 paralaxOffset36_g466 = ParallaxOffset( temp_cast_0.x , _Parallax , i.viewDir );
+			float2 switchResult47_g466 = (((i.ASEVFace>0)?(paralaxOffset36_g466):(0.0)));
+			float2 Parallaxe368 = switchResult47_g466;
+			float3 temp_output_245_0 = UnpackScaleNormal( tex2D( _BumpMap, ( ( appendResult14_g619 + appendResult13_g619 ) + Parallaxe368 ) ), _BumpScale );
 			float2 uv_DetailNormalMap = i.uv_texcoord * _DetailNormalMap_ST.xy + _DetailNormalMap_ST.zw;
 			float3 NormalDetail155 = UnpackScaleNormal( tex2D( _DetailNormalMap, uv_DetailNormalMap ), _DetailNormalMapScale );
 			float4 temp_cast_2 = (0.0).xxxx;
-			float2 appendResult394 = (float2(_TriplanarXYTilingXYZWOffsetXY1.x , _TriplanarXYTilingXYZWOffsetXY1.y));
+			float2 appendResult389 = (float2(_TriplanarXYTilingXYZWOffsetXY.x , _TriplanarXYTilingXYZWOffsetXY.y));
 			float _TriplanarFalloff_Instance = UNITY_ACCESS_INSTANCED_PROP(_TriplanarFalloff_arr, _TriplanarFalloff);
 			float3 ase_worldPos = i.worldPos;
 			float3 ase_worldNormal = WorldNormalVector( i, float3( 0, 0, 1 ) );
 			float3 ase_vertex3Pos = mul( unity_WorldToObject, float4( i.worldPos , 1 ) );
 			float3 ase_vertexNormal = mul( unity_WorldToObject, float4( ase_worldNormal, 0 ) );
 			#if defined(_TRIPLANARSPACEPROJECTION_OBJECTSPACE)
-				float3 staticSwitch389 = ase_vertex3Pos;
+				float3 staticSwitch386 = ase_vertex3Pos;
 			#elif defined(_TRIPLANARSPACEPROJECTION_WORLDSPACE)
-				float3 staticSwitch389 = ase_worldPos;
+				float3 staticSwitch386 = ase_worldPos;
 			#else
-				float3 staticSwitch389 = ase_vertex3Pos;
+				float3 staticSwitch386 = ase_vertex3Pos;
 			#endif
-			float2 appendResult388 = (float2(_TriplanarXYTilingXYZWOffsetXY1.z , _TriplanarXYTilingXYZWOffsetXY1.w));
-			float4 triplanar396 = TriplanarSampling396( _DetailMask, ( staticSwitch389 + float3( appendResult388 ,  0.0 ) ), ase_vertexNormal, _TriplanarFalloff_Instance, appendResult394, 1.0, 0 );
-			float4 clampResult409 = clamp( ( CalculateContrast(( _ContrastDetailMap + 1.0 ),(( _InvertMask )?( ( 1.0 - (( _EnableTriplanarProjection )?( triplanar396 ):( tex2D( _DetailMask, i.uv_texcoord ) )) ) ):( (( _EnableTriplanarProjection )?( triplanar396 ):( tex2D( _DetailMask, i.uv_texcoord ) )) ))) + -_SpreadDetailMap ) , float4( 0,0,0,0 ) , float4( 1,1,1,0 ) );
-			float MaskIntensity408 = _IntensityMask;
-			float4 Mask158 = (( _EnableDetailMask )?( ( clampResult409 * MaskIntensity408 ) ):( temp_cast_2 ));
+			float2 appendResult385 = (float2(_TriplanarXYTilingXYZWOffsetXY.z , _TriplanarXYTilingXYZWOffsetXY.w));
+			float4 triplanar393 = TriplanarSampling393( _DetailMask, ( staticSwitch386 + float3( appendResult385 ,  0.0 ) ), ase_vertexNormal, _TriplanarFalloff_Instance, appendResult389, 1.0, 0 );
+			float4 clampResult407 = clamp( ( CalculateContrast(( _ContrastDetailMap + 1.0 ),(( _InvertMask )?( ( 1.0 - (( _EnableTriplanarProjection )?( triplanar393 ):( tex2D( _DetailMask, i.uv_texcoord ) )) ) ):( (( _EnableTriplanarProjection )?( triplanar393 ):( tex2D( _DetailMask, i.uv_texcoord ) )) ))) + -_SpreadDetailMap ) , float4( 0,0,0,0 ) , float4( 1,1,1,0 ) );
+			float MaskIntensity405 = _IntensityMask;
+			float4 Mask158 = (( _EnableDetailMask )?( ( clampResult407 * MaskIntensity405 ) ):( temp_cast_2 ));
 			float3 lerpResult137 = lerp( temp_output_245_0 , NormalDetail155 , Mask158.rgb);
 			float3 lerpResult205 = lerp( temp_output_245_0 , BlendNormals( temp_output_245_0 , NormalDetail155 ) , Mask158.rgb);
 			float3 Normal27 = (( _BlendMainNormal )?( lerpResult205 ):( lerpResult137 ));
 			o.Normal = Normal27;
 			float2 uv_MainTex = i.uv_texcoord * _MainTex_ST.xy + _MainTex_ST.zw;
-			float2 break26_g630 = uv_MainTex;
-			float2 appendResult14_g630 = (float2(( break26_g630.x * GlobalTilingX11 ) , ( break26_g630.y * GlobalTilingY8 )));
-			float2 appendResult13_g630 = (float2(( break26_g630.x + GlobalOffsetX10 ) , ( break26_g630.y + GlobalOffsetY9 )));
-			float4 tex2DNode7_g629 = tex2D( _MainTex, ( ( appendResult14_g630 + appendResult13_g630 ) + Parallaxe369 ) );
-			float clampResult27_g629 = clamp( _Saturation , -1.0 , 100.0 );
-			float3 desaturateInitialColor29_g629 = ( _Color * tex2DNode7_g629 ).rgb;
-			float desaturateDot29_g629 = dot( desaturateInitialColor29_g629, float3( 0.299, 0.587, 0.114 ));
-			float3 desaturateVar29_g629 = lerp( desaturateInitialColor29_g629, desaturateDot29_g629.xxx, -clampResult27_g629 );
-			float4 temp_output_338_0 = CalculateContrast(_Brightness,float4( desaturateVar29_g629 , 0.0 ));
+			float2 break26_g614 = uv_MainTex;
+			float2 appendResult14_g614 = (float2(( break26_g614.x * GlobalTilingX11 ) , ( break26_g614.y * GlobalTilingY8 )));
+			float2 appendResult13_g614 = (float2(( break26_g614.x + GlobalOffsetX10 ) , ( break26_g614.y + GlobalOffsetY9 )));
+			float4 tex2DNode7_g613 = tex2D( _MainTex, ( ( appendResult14_g614 + appendResult13_g614 ) + Parallaxe368 ) );
+			float clampResult27_g613 = clamp( _Saturation , -1.0 , 100.0 );
+			float3 desaturateInitialColor29_g613 = ( _Color * tex2DNode7_g613 ).rgb;
+			float desaturateDot29_g613 = dot( desaturateInitialColor29_g613, float3( 0.299, 0.587, 0.114 ));
+			float3 desaturateVar29_g613 = lerp( desaturateInitialColor29_g613, desaturateDot29_g613.xxx, -clampResult27_g613 );
+			float4 temp_output_338_0 = CalculateContrast(_Brightness,float4( desaturateVar29_g613 , 0.0 ));
 			float2 uv_DetailAlbedoMap = i.uv_texcoord * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
-			float4 tex2DNode7_g612 = tex2D( _DetailAlbedoMap, uv_DetailAlbedoMap );
-			float clampResult27_g612 = clamp( _DetailSaturation , -1.0 , 100.0 );
-			float3 desaturateInitialColor29_g612 = ( _DetailColor * tex2DNode7_g612 ).rgb;
-			float desaturateDot29_g612 = dot( desaturateInitialColor29_g612, float3( 0.299, 0.587, 0.114 ));
-			float3 desaturateVar29_g612 = lerp( desaturateInitialColor29_g612, desaturateDot29_g612.xxx, -clampResult27_g612 );
-			float4 AlbedoDetail153 = CalculateContrast(_DetailBrightness,float4( desaturateVar29_g612 , 0.0 ));
+			float4 tex2DNode7_g468 = tex2D( _DetailAlbedoMap, uv_DetailAlbedoMap );
+			float clampResult27_g468 = clamp( _DetailSaturation , -1.0 , 100.0 );
+			float3 desaturateInitialColor29_g468 = ( _DetailColor * tex2DNode7_g468 ).rgb;
+			float desaturateDot29_g468 = dot( desaturateInitialColor29_g468, float3( 0.299, 0.587, 0.114 ));
+			float3 desaturateVar29_g468 = lerp( desaturateInitialColor29_g468, desaturateDot29_g468.xxx, -clampResult27_g468 );
+			float4 AlbedoDetail153 = CalculateContrast(_DetailBrightness,float4( desaturateVar29_g468 , 0.0 ));
 			float4 lerpResult343 = lerp( temp_output_338_0 , AlbedoDetail153 , Mask158);
-			float4 blendOpSrc15_g642 = temp_output_338_0;
-			float4 blendOpDest15_g642 = lerpResult343;
-			float4 lerpBlendMode15_g642 = lerp(blendOpDest15_g642,(( blendOpDest15_g642 > 0.5 ) ? ( 1.0 - 2.0 * ( 1.0 - blendOpDest15_g642 ) * ( 1.0 - blendOpSrc15_g642 ) ) : ( 2.0 * blendOpDest15_g642 * blendOpSrc15_g642 ) ),Mask158.x);
-			float4 Albedo26 = (( _VisualizeMask )?( Mask158 ):( (( _BlendmodeOverlay )?( ( saturate( lerpBlendMode15_g642 )) ):( lerpResult343 )) ));
+			float4 blendOpSrc15_g624 = temp_output_338_0;
+			float4 blendOpDest15_g624 = lerpResult343;
+			float4 lerpBlendMode15_g624 = lerp(blendOpDest15_g624,(( blendOpDest15_g624 > 0.5 ) ? ( 1.0 - 2.0 * ( 1.0 - blendOpDest15_g624 ) * ( 1.0 - blendOpSrc15_g624 ) ) : ( 2.0 * blendOpDest15_g624 * blendOpSrc15_g624 ) ),Mask158.x);
+			float4 Albedo26 = (( _VisualizeMask )?( Mask158 ):( (( _BlendmodeOverlay )?( ( saturate( lerpBlendMode15_g624 )) ):( lerpResult343 )) ));
 			o.Albedo = Albedo26.rgb;
 			float2 uv_EmissionMap = i.uv_texcoord * _EmissionMap_ST.xy + _EmissionMap_ST.zw;
-			float2 break26_g639 = uv_EmissionMap;
-			float2 appendResult14_g639 = (float2(( break26_g639.x * GlobalTilingX11 ) , ( break26_g639.y * GlobalTilingY8 )));
-			float2 appendResult13_g639 = (float2(( break26_g639.x + GlobalOffsetX10 ) , ( break26_g639.y + GlobalOffsetY9 )));
-			float4 temp_output_248_0 = ( _EmissionColor * tex2D( _EmissionMap, ( ( appendResult14_g639 + appendResult13_g639 ) + Parallaxe369 ) ) * _EmissionIntensity );
+			float2 break26_g623 = uv_EmissionMap;
+			float2 appendResult14_g623 = (float2(( break26_g623.x * GlobalTilingX11 ) , ( break26_g623.y * GlobalTilingY8 )));
+			float2 appendResult13_g623 = (float2(( break26_g623.x + GlobalOffsetX10 ) , ( break26_g623.y + GlobalOffsetY9 )));
+			float4 temp_output_248_0 = ( _EmissionColor * tex2D( _EmissionMap, ( ( appendResult14_g623 + appendResult13_g623 ) + Parallaxe368 ) ) * _EmissionIntensity );
 			float4 temp_cast_21 = (0.0).xxxx;
 			float4 lerpResult190 = lerp( temp_output_248_0 , temp_cast_21 , Mask158);
 			float4 Emission110 = (( _UseEmissionFromMainProperties )?( temp_output_248_0 ):( lerpResult190 ));
 			o.Emission = Emission110.rgb;
 			float2 uv_SpecGlossMap = i.uv_texcoord * _SpecGlossMap_ST.xy + _SpecGlossMap_ST.zw;
-			float2 break26_g641 = uv_SpecGlossMap;
-			float2 appendResult14_g641 = (float2(( break26_g641.x * GlobalTilingX11 ) , ( break26_g641.y * GlobalTilingY8 )));
-			float2 appendResult13_g641 = (float2(( break26_g641.x + GlobalOffsetX10 ) , ( break26_g641.y + GlobalOffsetY9 )));
-			float4 tex2DNode3_g640 = tex2D( _SpecGlossMap, ( ( appendResult14_g641 + appendResult13_g641 ) + Parallaxe369 ) );
+			float2 break26_g626 = uv_SpecGlossMap;
+			float2 appendResult14_g626 = (float2(( break26_g626.x * GlobalTilingX11 ) , ( break26_g626.y * GlobalTilingY8 )));
+			float2 appendResult13_g626 = (float2(( break26_g626.x + GlobalOffsetX10 ) , ( break26_g626.y + GlobalOffsetY9 )));
+			float4 tex2DNode3_g625 = tex2D( _SpecGlossMap, ( ( appendResult14_g626 + appendResult13_g626 ) + Parallaxe368 ) );
 			float2 uv_DetailSpecGlossMap = i.uv_texcoord * _DetailSpecGlossMap_ST.xy + _DetailSpecGlossMap_ST.zw;
-			float4 tex2DNode3_g633 = tex2D( _DetailSpecGlossMap, uv_DetailSpecGlossMap );
-			float4 DetailMetallic176 = ( _DetailSpecularColor * tex2DNode3_g633 * _DetailSpecularIntensity );
-			float4 lerpResult179 = lerp( ( _SpecularColor * tex2DNode3_g640 * _SpecularIntensity ) , DetailMetallic176 , Mask158);
+			float4 tex2DNode3_g617 = tex2D( _DetailSpecGlossMap, uv_DetailSpecGlossMap );
+			float4 DetailMetallic176 = ( _DetailSpecularColor * tex2DNode3_g617 * _DetailSpecularIntensity );
+			float4 lerpResult179 = lerp( ( _SpecularColor * tex2DNode3_g625 * _SpecularIntensity ) , DetailMetallic176 , Mask158);
 			float4 Specular41 = lerpResult179;
 			o.Specular = Specular41.rgb;
-			float BaseColorAlpha46 = (( _InvertABaseColor )?( ( 1.0 - tex2DNode7_g629.a ) ):( tex2DNode7_g629.a ));
+			float BaseColorAlpha46 = (( _InvertABaseColor )?( ( 1.0 - tex2DNode7_g613.a ) ):( tex2DNode7_g613.a ));
 			#if defined(_SOURCE_SPECULARALPHA)
-				float staticSwitch31_g640 = ( tex2DNode3_g640.a * _Glossiness );
+				float staticSwitch31_g625 = ( tex2DNode3_g625.a * _Glossiness );
 			#elif defined(_SOURCE_BASECOLORALPHA)
-				float staticSwitch31_g640 = ( _Glossiness * BaseColorAlpha46 );
+				float staticSwitch31_g625 = ( _Glossiness * BaseColorAlpha46 );
 			#else
-				float staticSwitch31_g640 = ( tex2DNode3_g640.a * _Glossiness );
+				float staticSwitch31_g625 = ( tex2DNode3_g625.a * _Glossiness );
 			#endif
-			float DetailBaseColorAlpha170 = tex2DNode7_g612.a;
+			float DetailBaseColorAlpha170 = tex2DNode7_g468.a;
 			#if defined(_DETAILSOURCE_SPECULARALPHA)
-				float staticSwitch31_g633 = ( tex2DNode3_g633.a * _DetailGlossiness );
+				float staticSwitch31_g617 = ( tex2DNode3_g617.a * _DetailGlossiness );
 			#elif defined(_DETAILSOURCE_ALBEDOALPHA)
-				float staticSwitch31_g633 = ( _DetailGlossiness * DetailBaseColorAlpha170 );
+				float staticSwitch31_g617 = ( _DetailGlossiness * DetailBaseColorAlpha170 );
 			#else
-				float staticSwitch31_g633 = ( tex2DNode3_g633.a * _DetailGlossiness );
+				float staticSwitch31_g617 = ( tex2DNode3_g617.a * _DetailGlossiness );
 			#endif
-			float DetailSmoothness175 = staticSwitch31_g633;
-			float lerpResult182 = lerp( staticSwitch31_g640 , DetailSmoothness175 , Mask158.r);
+			float DetailSmoothness175 = staticSwitch31_g617;
+			float lerpResult182 = lerp( staticSwitch31_g625 , DetailSmoothness175 , Mask158.r);
 			float Smoothness40 = lerpResult182;
 			o.Smoothness = Smoothness40;
 			float2 uv_OcclusionMap = i.uv_texcoord * _OcclusionMap_ST.xy + _OcclusionMap_ST.zw;
-			float2 break26_g637 = uv_OcclusionMap;
-			float2 appendResult14_g637 = (float2(( break26_g637.x * GlobalTilingX11 ) , ( break26_g637.y * GlobalTilingY8 )));
-			float2 appendResult13_g637 = (float2(( break26_g637.x + GlobalOffsetX10 ) , ( break26_g637.y + GlobalOffsetY9 )));
-			float blendOpSrc2_g636 = tex2D( _OcclusionMap, ( ( appendResult14_g637 + appendResult13_g637 ) + Parallaxe369 ) ).r;
-			float blendOpDest2_g636 = ( 1.0 - _AoIntensity );
-			float temp_output_247_0 = ( saturate( ( 1.0 - ( 1.0 - blendOpSrc2_g636 ) * ( 1.0 - blendOpDest2_g636 ) ) ));
+			float2 break26_g621 = uv_OcclusionMap;
+			float2 appendResult14_g621 = (float2(( break26_g621.x * GlobalTilingX11 ) , ( break26_g621.y * GlobalTilingY8 )));
+			float2 appendResult13_g621 = (float2(( break26_g621.x + GlobalOffsetX10 ) , ( break26_g621.y + GlobalOffsetY9 )));
+			float blendOpSrc2_g620 = tex2D( _OcclusionMap, ( ( appendResult14_g621 + appendResult13_g621 ) + Parallaxe368 ) ).r;
+			float blendOpDest2_g620 = ( 1.0 - _AoIntensity );
+			float temp_output_247_0 = ( saturate( ( 1.0 - ( 1.0 - blendOpSrc2_g620 ) * ( 1.0 - blendOpDest2_g620 ) ) ));
 			float lerpResult185 = lerp( temp_output_247_0 , 1.0 , Mask158.r);
 			float AmbientOcclusion94 = (( _UseAoFromMainProperties )?( temp_output_247_0 ):( lerpResult185 ));
 			o.Occlusion = AmbientOcclusion94;
-			o.Alpha = 1;
-			float2 uv_CutoutMap = i.uv_texcoord * _CutoutMap_ST.xy + _CutoutMap_ST.zw;
-			float4 tex2DNode8_g643 = tex2D( _CutoutMap, uv_CutoutMap );
+			float2 uv_TransparentMask = i.uv_texcoord * _TransparentMask_ST.xy + _TransparentMask_ST.zw;
+			float4 tex2DNode8_g627 = tex2D( _TransparentMask, uv_TransparentMask );
 			float4 temp_cast_26 = (BaseColorAlpha46).xxxx;
 			float4 temp_cast_27 = (BaseColorAlpha46).xxxx;
-			float4 clampResult24_g643 = clamp( (( _InvertCutout )?( ( 1.0 - (( _UseBaseColorAlpha )?( temp_cast_27 ):( tex2DNode8_g643 )) ) ):( (( _UseBaseColorAlpha )?( temp_cast_26 ):( tex2DNode8_g643 )) )) , float4( 0,0,0,0 ) , float4( 1,0,0,0 ) );
-			float4 Cutout352 = clampResult24_g643;
-			clip( Cutout352.r - _Cutoff );
+			float4 clampResult24_g627 = clamp( ( CalculateContrast(( _ContrastTransparentMap + 1.0 ),(( _InvertTransparent )?( ( 1.0 - (( _UseBaseColorAlpha )?( temp_cast_27 ):( tex2DNode8_g627 )) ) ):( (( _UseBaseColorAlpha )?( temp_cast_26 ):( tex2DNode8_g627 )) ))) + -_SpreadTransparentMap ) , float4( 0,0,0,0 ) , float4( 1,0,0,0 ) );
+			float4 Transparent358 = ( clampResult24_g627 * ( 1.0 - _IntensityTransparentMap ) );
+			o.Alpha = Transparent358.r;
 		}
 
 		ENDCG
 		CGPROGRAM
-		#pragma surface surf StandardSpecular keepalpha fullforwardshadows 
+		#pragma surface surf StandardSpecular alpha:fade keepalpha fullforwardshadows 
 
 		ENDCG
 		Pass
@@ -329,6 +332,7 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 			#include "UnityPBSLighting.cginc"
+			sampler3D _DitherMaskLOD;
 			struct v2f
 			{
 				V2F_SHADOW_CASTER;
@@ -384,6 +388,8 @@ Shader "Patcher/Ciconia Studio/CS_Standard/Builtin/Standard (Specular setup)/Cut
 				#if defined( CAN_SKIP_VPOS )
 				float2 vpos = IN.pos;
 				#endif
+				half alphaRef = tex3D( _DitherMaskLOD, float3( vpos.xy * 0.25, o.Alpha * 0.9375 ) ).a;
+				clip( alphaRef - 0.01 );
 				SHADOW_CASTER_FRAGMENT( IN )
 			}
 			ENDCG

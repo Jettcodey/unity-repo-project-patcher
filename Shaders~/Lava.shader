@@ -1,4 +1,4 @@
-Shader "Patcher/Lava" {
+Shader "Lava" {
 	Properties {
 		_DiscortScale ("DiscortScale", Float) = 1
 		_Scale ("Scale", Float) = 1

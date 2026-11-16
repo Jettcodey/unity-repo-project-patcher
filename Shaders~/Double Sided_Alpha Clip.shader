@@ -1,6 +1,6 @@
 // Made with Amplify Shader Editor
 // Available at the Unity Asset Store - http://u3d.as/y3X 
-Shader "Patcher/Double Sided/Alpha Clip"
+Shader "Double Sided/Alpha Clip"
 {
 	Properties
 	{
