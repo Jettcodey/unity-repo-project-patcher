@@ -11,7 +11,7 @@ namespace Kesomannen.RepoProjectPatcher.Editor {
             
             stepPipeline.InsertLast(new FixES3Step());
 #if UNITY_EDITOR_LINUX
-            stepPipeline.InsertAfter<AssetRipperStep>(new FixCaseDuplicatesStep());
+            stepPipeline.InsertAfter<AssetRipperStep>(new FixAssetCasingStep());
             stepPipeline.InsertLast(new ReplaceSteamLinuxStep());
 #endif
             stepPipeline.InsertLast(new GeneratePhotonAssembliesStep());
